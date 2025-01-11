@@ -51,6 +51,7 @@ pub enum Error {
     Serialization(String),
 }
 
+#[derive(Clone)]
 pub struct ClientOptions {
     api_endpoint: String,
     api_key: String,
@@ -65,6 +66,7 @@ impl From<&str> for ClientOptions {
     }
 }
 
+#[derive(Clone)]
 pub struct Client {
     options: ClientOptions,
     #[cfg(feature = "blocking")]
