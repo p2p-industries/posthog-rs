@@ -103,9 +103,18 @@ impl Client {
 
     #[cfg(feature = "blocking")]
     pub fn capture_batch(&self, events: impl Iterator<Item = Event>) -> Result<(), Error> {
-        for event in events {
-            self.capture(event)?;
-        }
+        let batch = Batch {
+            api_key: self.options.api_key.clone(),
+            historical_migration: false,
+            batch: events.collect(),
+        };
+        let _res = self
+            .blocking_client
+            .post(self.options.api_endpoint.clone())
+            .header(CONTENT_TYPE, "application/json")
+            .body(serde_json::to_string(&batch).expect("unwrap here is safe"))
+            .send()
+            .map_err(|e| Error::Connection(e.to_string()))?;
         Ok(())
     }
 
@@ -113,9 +122,19 @@ impl Client {
         &self,
         events: impl Iterator<Item = Event>,
     ) -> Result<(), Error> {
-        for event in events {
-            self.async_capture(event).await?;
-        }
+        let batch = Batch {
+            api_key: self.options.api_key.clone(),
+            historical_migration: false,
+            batch: events.collect(),
+        };
+        let _res = self
+            .async_client
+            .post(self.options.api_endpoint.clone())
+            .header(CONTENT_TYPE, "application/json")
+            .body(serde_json::to_string(&batch).expect("unwrap here is safe"))
+            .send()
+            .await
+            .map_err(|e| Error::Connection(e.to_string()))?;
         Ok(())
     }
 }
@@ -167,6 +186,13 @@ impl InnerEvent {
             timestamp: event.timestamp,
         }
     }
+}
+
+#[derive(Debug, Serialize)]
+struct Batch {
+    api_key: String,
+    historical_migration: bool,
+    batch: Vec<Event>,
 }
 
 #[derive(Serialize, Debug, PartialEq, Eq)]
