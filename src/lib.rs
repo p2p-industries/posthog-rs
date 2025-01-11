@@ -14,6 +14,7 @@ use std::time::Duration;
 extern crate serde_json;
 
 const API_ENDPOINT: &str = "https://us.i.posthog.com/capture/";
+const BATCH_API_ENDPOINT: &str = "https://us.i.posthog.com/batch/";
 const TIMEOUT: &Duration = &Duration::from_millis(800); // This should be specified by the user
 
 pub fn client<C: Into<ClientOptions>>(options: C) -> Client {
@@ -110,7 +111,7 @@ impl Client {
         };
         let _res = self
             .blocking_client
-            .post(self.options.api_endpoint.clone())
+            .post(BATCH_API_ENDPOINT)
             .header(CONTENT_TYPE, "application/json")
             .body(serde_json::to_string(&batch).expect("unwrap here is safe"))
             .send()
@@ -129,7 +130,7 @@ impl Client {
         };
         let _res = self
             .async_client
-            .post(self.options.api_endpoint.clone())
+            .post(BATCH_API_ENDPOINT)
             .header(CONTENT_TYPE, "application/json")
             .body(serde_json::to_string(&batch).expect("unwrap here is safe"))
             .send()
